@@ -21,7 +21,7 @@ const MakeOrder = () => {
   useEffect(() => {
     const fetchQuote = async () => {
       try {
-        const res = await axios.get(apiURL + "quote");
+        const res = await axios.get(apiURL + "/quote");
         if (res.data.ok) {
           setQuotePrice(res.data.data);
         } else {
@@ -39,7 +39,7 @@ const MakeOrder = () => {
     setLoading(true);
     try {
       const res = await axios.post(
-        apiURL + "trade/makeorder",
+        apiURL + "/trade/makeorder",
         {
           side,
           price: Number(price),

@@ -5,7 +5,7 @@ import { Orderbook, AnonyOrder } from "../types";
 import { Zap } from "lucide-react";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const wsURL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080";
+const wsURL = process.env.NEXT_PUBLIC_WS_URL!;
 
 const Depth = () => {
   const [orderBook, setOrderBook] = useState<Orderbook | null>(null);
@@ -34,7 +34,7 @@ const Depth = () => {
 
     const fetchOrderbook = async () => {
       try {
-        const res = await fetch(apiURL + "orderbook");
+        const res = await fetch(apiURL + "/orderbook");
         const data = await res.json();
         if (data.ok) {
           setOrderBook(data.data);

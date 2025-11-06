@@ -21,6 +21,7 @@ const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function Signup() {
       const res = await axios.post(apiURL + "/auth/signup", {
         email,
         password,
+        confirmPassword,
         name,
       });
       if (res.data && res.data.ok) {
@@ -84,6 +86,16 @@ export default function Signup() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>

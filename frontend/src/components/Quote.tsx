@@ -11,7 +11,7 @@ const Quote = () => {
   const [price, setPrice] = useState<any>();
 
   function fetchQuote() {
-    axios.get(apiURL + "quote").then((res) => {
+    axios.get(apiURL + "/quote").then((res) => {
       if (res.data.ok) {
         setPrice(res.data.data);
       } else {

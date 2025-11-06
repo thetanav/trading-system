@@ -15,7 +15,7 @@ export default function Transactions() {
 
   async function fetchT() {
     setLoading(true);
-    const res = await axios.get(apiURL + "transactions", {
+    const res = await axios.get(apiURL + "/transactions", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

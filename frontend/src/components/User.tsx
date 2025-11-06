@@ -10,7 +10,7 @@ const UserList = () => {
   const [users, setUsers] = useState<UserType[]>([]);
   useEffect(() => {
     function fetchUsers() {
-      axios.get(apiURL + "users").then((res) => {
+      axios.get(apiURL + "/users").then((res) => {
         setUsers(res.data);
       });
     }
