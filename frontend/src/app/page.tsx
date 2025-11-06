@@ -1,6 +1,6 @@
 import { Nav } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import Link from "next/link";
 import {
   ArrowRight,
   TrendingUp,
@@ -11,11 +11,7 @@ import {
   Globe,
 } from "lucide-react";
 
-export const Route = createFileRoute("/")({
-  component: Index,
-});
-
-function Index() {
+export default function Index() {
   return (
     <div className="min-h-screen">
       <Nav />
@@ -23,7 +19,7 @@ function Index() {
       <section className="px-6 py-20">
         <div className="max-w-7xl mx-auto text-center">
           <div className="mb-8">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-purple-200">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-linear-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-purple-200">
               Next-Generation
               <br />
               Trading Platform
@@ -37,8 +33,8 @@ function Index() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <Link
-              to="/signup"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2 group">
+              href="/signup"
+              className="bg-linear-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2 group">
               <span>Start Trading Now</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -47,7 +43,7 @@ function Index() {
               asChild
               size={"lg"}
               className="px-8 py-4 h-full rounded-xl text-lg">
-              <Link to="/login" className="flex items-center space-x-2">
+              <Link href="/login" className="flex items-center space-x-2">
                 <span>View Demo</span>
               </Link>
             </Button>
@@ -87,7 +83,7 @@ function Index() {
         className="px-6 py-20 bg-white/50 dark:bg-gray-800/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent dark:from-white dark:to-blue-200">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-linear-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent dark:from-white dark:to-blue-200">
               Why Choose TradeX?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
@@ -180,7 +176,7 @@ function Index() {
       {/* CTA Section */}
       <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent dark:from-white dark:to-blue-200">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-linear-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent dark:from-white dark:to-blue-200">
             Ready to Start Trading?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
@@ -189,8 +185,8 @@ function Index() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/signup"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center">
+              href="/signup"
+              className="bg-linear-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center">
               Create Free Account
             </Link>
             <Button
@@ -198,7 +194,7 @@ function Index() {
               asChild
               size={"lg"}
               className="px-8 py-4 h-full rounded-xl text-lg">
-              <Link to="/login">Sign In</Link>
+              <Link href="/login">Sign In</Link>
             </Button>
           </div>
         </div>

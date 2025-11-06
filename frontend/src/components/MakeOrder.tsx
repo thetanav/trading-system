@@ -1,3 +1,5 @@
+"use client";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { apiURL } from "@/routes/__root";
+
+const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const MakeOrder = () => {
   const token = localStorage.getItem("token");
@@ -153,8 +156,8 @@ const MakeOrder = () => {
             {loading
               ? "Placing Order..."
               : side === "bid"
-                ? "Place Buy Order"
-                : "Place Sell Order"}
+              ? "Place Buy Order"
+              : "Place Sell Order"}
           </Button>
         </form>
       </div>

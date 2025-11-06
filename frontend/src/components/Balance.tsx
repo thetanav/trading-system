@@ -1,9 +1,12 @@
+"use client";
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { User as UserType } from "../types";
 import { RefreshCcw } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { apiURL } from "@/routes/__root";
+
+const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const Balance = () => {
   const token = localStorage.getItem("token");

@@ -1,9 +1,12 @@
+"use client";
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Transaction } from "../types";
 import { Button } from "./ui/button";
 import { RefreshCcw } from "lucide-react";
-import { apiURL } from "@/routes/__root";
+
+const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function Transactions() {
   const token = localStorage.getItem("token");
@@ -57,7 +60,9 @@ export default function Transactions() {
                     {new Date(tx.timestamp).toLocaleString()}
                   </span>
                   <span
-                    className={`font-semibold ${tx.type === "buy" ? "text-green-400" : "text-red-400"}`}>
+                    className={`font-semibold ${
+                      tx.type === "buy" ? "text-green-400" : "text-red-400"
+                    }`}>
                     {tx.type.toUpperCase()}
                   </span>
                 </div>

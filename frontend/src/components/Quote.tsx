@@ -1,8 +1,11 @@
+"use client";
+
 import axios from "axios";
 import { RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
-import { apiURL } from "@/routes/__root";
+
+const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const Quote = () => {
   const [price, setPrice] = useState<any>();

@@ -1,7 +1,10 @@
+"use client";
+
 import axios from "axios";
 import { User as UserType } from "../types";
 import { useEffect, useState } from "react";
-import { apiURL } from "@/routes/__root";
+
+const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const UserList = () => {
   const [users, setUsers] = useState<UserType[]>([]);

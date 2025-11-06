@@ -4,7 +4,6 @@ import WebSocket from "ws";
 import dotenv from "dotenv";
 import path from "path";
 import { createClient } from "redis";
-import bodyParser from "body-parser";
 import authRoutes from "./routes/auth";
 import tradeRoutes from "./routes/trade";
 import express, { Request, Response } from "express";
@@ -14,11 +13,11 @@ import { eq } from "drizzle-orm";
 import auth from "./middlware/jwt";
 
 dotenv.config();
+dotenv.config();
 export const app = express();
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 // API Routes
 app.use("/trade", tradeRoutes);
 app.use("/auth", authRoutes);
@@ -122,31 +121,6 @@ app.get("/health", (req: Request, res: Response) => {
     .json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
-// Serve static files from frontend build
-const frontendPath = path.join(__dirname, "../../frontend/dist");
-app.use(express.static(frontendPath));
-
-// Handle client-side routing - serve index.html for all non-API routes
-app.get("*", (req: Request, res: Response) => {
-  // Skip API routes
-  if (
-    req.path.startsWith("/api/") ||
-    req.path.startsWith("/trade") ||
-    req.path.startsWith("/auth") ||
-    req.path.startsWith("/users") ||
-    req.path.startsWith("/user/") ||
-    req.path.startsWith("/me") ||
-    req.path.startsWith("/transactions") ||
-    req.path.startsWith("/quote") ||
-    req.path.startsWith("/orderbook") ||
-    req.path.startsWith("/health")
-  ) {
-    return res.status(404).json({ error: "Not found" });
-  }
-
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
-
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
@@ -176,5 +150,5 @@ export async function sendOrderbook() {
   }
 }
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

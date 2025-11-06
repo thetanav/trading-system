@@ -1,43 +1,41 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Button } from "../components/ui/button";
+} from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Button } from "../../components/ui/button";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
-import { apiURL } from "./__root";
-import { Nav } from "@/components/Navbar";
 
-export const Route = createFileRoute("/login")({
-  component: RouteComponent,
-});
+const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-function RouteComponent() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(apiURL + "auth/login", {
+      const res = await axios.post(apiURL + "/auth/login", {
         email,
         password,
       });
       if (res.data && res.data.ok && res.data.token) {
         localStorage.setItem("token", res.data.token);
         toast.success(res.data.msg);
-        navigate({ to: "/dashboard" });
+        router.push("/dashboard");
       } else {
         toast.error(res.data?.msg || "Login failed");
       }
@@ -49,24 +47,23 @@ function RouteComponent() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh] w-full">
-      <Nav />
-      <Card className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Login</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            Login to TradeX
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
                 required
-                autoFocus
               />
             </div>
             <div>
@@ -76,22 +73,21 @@ function RouteComponent() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
                 required
               />
             </div>
-            <Button
-              type="submit"
-              className="w-full font-bold mt-2"
-              disabled={loading || !email || !password}>
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter>
-          <Link to="/signup" className="opacity-60 underline">
-            New User ?
-          </Link>
+        <CardFooter className="text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-blue-600 hover:underline">
+              Sign up
+            </Link>
+          </p>
         </CardFooter>
       </Card>
     </div>

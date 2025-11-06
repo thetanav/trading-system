@@ -1,7 +1,11 @@
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { Orderbook, AnonyOrder } from "../types";
-import { apiURL, wsURL } from "@/routes/__root";
 import { Zap } from "lucide-react";
+
+const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const wsURL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080";
 
 const Depth = () => {
   const [orderBook, setOrderBook] = useState<Orderbook | null>(null);
