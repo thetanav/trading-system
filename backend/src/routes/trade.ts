@@ -5,6 +5,7 @@ import { db } from "../db";
 import { transactions, users } from "../schema";
 import { eq, sql } from "drizzle-orm";
 import auth from "../middlware/jwt";
+import { chart } from "../memory";
 
 const router = Router();
 
@@ -176,5 +177,35 @@ async function flipBalance(
     price,
   });
 }
+
+router.get("/chart", async (req: Request, res: Response) => {
+  res.json(
+    chart.slice(-720).map((c) => ({
+      time: Math.floor(c.timestamp.getTime() / 1000),
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+    }))
+  ); // last 12 hours
+});
+
+router.get("/orderbook", async (req: Request, res: Response) => {
+  try {
+    const asks = await redisClient.lRange("orderbook:asks", 0, -1);
+    const bids = await redisClient.lRange("orderbook:bids", 0, -1);
+    res.json({
+      ok: true,
+      data: {
+        asks: asks.map((a) => JSON.parse(a)),
+        bids: bids.map((b) => JSON.parse(b)),
+      },
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ ok: false, error: "Failed to fetch orderbook from Redis" });
+  }
+});
 
 export default router;

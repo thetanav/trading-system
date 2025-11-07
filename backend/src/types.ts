@@ -34,5 +34,8 @@ export interface Orderbook {
 
 export interface Chart {
   timestamp: Date;
-  price: number;
+  open: number;
+  high: number;
+  close: number;
+  low: number;
 }
