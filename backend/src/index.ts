@@ -11,6 +11,7 @@ import { db } from "./db";
 import { transactions, users } from "./schema";
 import { eq } from "drizzle-orm";
 import auth from "./middlware/jwt";
+import { Chart } from "./types";
 
 dotenv.config();
 dotenv.config();
@@ -68,32 +69,51 @@ app.get("/transactions", auth, async (req: Request, res: Response) => {
   res.json(data);
 });
 
-app.get("/quote", async (req: Request, res: Response) => {
+// make a good ui
+const chart: Chart[] = [
+  { price: 100, timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000) },
+  { price: 102, timestamp: new Date(Date.now() - 11 * 60 * 60 * 1000) },
+  { price: 101, timestamp: new Date(Date.now() - 10 * 60 * 60 * 1000) },
+  { price: 103, timestamp: new Date(Date.now() - 9 * 60 * 60 * 1000) },
+  { price: 105, timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000) },
+  { price: 104, timestamp: new Date(Date.now() - 7 * 60 * 60 * 1000) },
+  { price: 106, timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000) },
+  { price: 108, timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) },
+  { price: 107, timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000) },
+  { price: 109, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000) },
+  { price: 110, timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+  { price: 111, timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000) },
+];
+
+async function updateChart() {
   try {
     const asks = await redisClient.lRange("orderbook:asks", 0, -1);
     const bids = await redisClient.lRange("orderbook:bids", 0, -1);
     if (asks.length !== 0 && bids.length !== 0) {
       const bestAsk = JSON.parse(asks[0]);
       const bestBid = JSON.parse(bids[0]);
-      res.send(
-        JSON.stringify({
-          ok: true,
-          data: (bestAsk.price + bestBid.price) / 2,
-        })
-      );
-    } else {
-      res.send(
-        JSON.stringify({
-          ok: false,
-          data: "Trade not started!",
-        })
-      );
+      const price = (bestAsk.price + bestBid.price) / 2;
+      chart.push({ price, timestamp: new Date() });
+      console.log("> added to chart");
     }
-  } catch (err: any) {
-    res
-      .status(500)
-      .json({ ok: false, error: "Failed to fetch quote from Redis" });
+  } catch (err) {
+    console.error("Failed to update chart:", err);
   }
+  setTimeout(() => updateChart(), 5 * 60 * 1000);
+}
+
+updateChart();
+
+app.get("/chart", async (req: Request, res: Response) => {
+  res.json(
+    chart.slice(-144).map((c) => ({
+      time: Math.floor(c.timestamp.getTime() / 1000),
+      open: c.price,
+      high: c.price,
+      low: c.price,
+      close: c.price,
+    }))
+  ); // last 12 hours
 });
 
 app.get("/orderbook", async (req: Request, res: Response) => {

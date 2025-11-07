@@ -10,7 +10,12 @@ import { RefreshCcw } from "lucide-react";
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function Transactions() {
-  const token = localStorage.getItem("token");
+  const [token] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
+    }
+    return null;
+  });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 

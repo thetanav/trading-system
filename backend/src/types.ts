@@ -16,7 +16,7 @@ export interface Order {
 }
 
 export interface UserOrder {
-  side: "bid"|"ask";
+  side: "bid" | "ask";
   userId: string;
   price: number;
   quantity: number;
@@ -32,3 +32,7 @@ export interface Orderbook {
   bids: AnonyOrder[];
 }
 
+export interface Chart {
+  timestamp: Date;
+  price: number;
+}

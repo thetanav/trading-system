@@ -10,7 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const Balance = () => {
-  const token = localStorage.getItem("token");
+  const [token] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
+    }
+    return null;
+  });
   const [info, setInfo] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(false);
 

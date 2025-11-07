@@ -6,34 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const MakeOrder = () => {
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
+    }
+    return null;
+  });
   const [side, setSide] = useState<"bid" | "ask">("bid");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [loading, setLoading] = useState(false);
-  const [quotePrice, setQuotePrice] = useState<string>("");
-
-  useEffect(() => {
-    const fetchQuote = async () => {
-      try {
-        const res = await axios.get(apiURL + "/quote");
-        if (res.data.ok) {
-          setQuotePrice(res.data.data);
-        } else {
-          setQuotePrice("");
-        }
-      } catch (err) {
-        setQuotePrice("");
-      }
-    };
-    fetchQuote();
-  }, [side]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,30 +91,6 @@ const MakeOrder = () => {
                 className="flex-1"
               />
             </div>
-            {quotePrice && (
-              <div className="text-xs text-muted-foreground flex items-center gap-2">
-                <span>Market Price:</span>
-                <span className="font-mono font-semibold text-primary">
-                  {quotePrice}
-                </span>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (quotePrice) {
-                      const formatted = isNaN(Number(quotePrice))
-                        ? quotePrice
-                        : Number(quotePrice).toFixed(6).replace(/\.0+$/, "");
-                      setPrice(formatted);
-                    }
-                  }}
-                  className="text-xs font-medium"
-                  title="Set as order price"
-                  variant="outline"
-                  size="sm">
-                  Set
-                </Button>
-              </div>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="quantity">Quantity</Label>
