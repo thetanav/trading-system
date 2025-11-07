@@ -26,14 +26,23 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex items-start justify-center w-full gap-4 pt-2 min-h-screen">
+    <div className="min-h-screen bg-background">
       <Nav />
-      <Depth />
-      <div className="flex-col space-y-3 w-80">
-        <Balance />
-        <MakeOrder />
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Orderbook - spans 6 columns on large screens */}
+          <div className="lg:col-span-6">
+            <Depth />
+          </div>
+
+          {/* Right sidebar - spans 6 columns on large screens */}
+          <div className="lg:col-span-6 space-y-6">
+            <Balance />
+            <MakeOrder />
+            <Transactions />
+          </div>
+        </div>
       </div>
-      <Transactions />
     </div>
   );
 }

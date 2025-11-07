@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { User as UserType } from "../types";
 import { RefreshCcw } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -34,20 +35,21 @@ const Balance = () => {
   }, []);
 
   return (
-    <div className="w-full mx-auto text-card-foreground border py-4 px-6 rounded-xl">
-      <div className="flex flex-row items-center justify-between pb-4">
-        <h2 className="text-lg font-semibold">{info?.name}</h2>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-lg font-semibold">
+          {info?.name || "Balance"}
+        </CardTitle>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => fetchUsers()}
+          disabled={loading}
           aria-label="Refresh balance">
-          <RefreshCcw
-            className={"w-5 h-5 " + (loading ? "animate-spin" : "")}
-          />
+          <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
-      </div>
-      <div>
+      </CardHeader>
+      <CardContent>
         {loading ? (
           <div className="text-muted-foreground">Loading...</div>
         ) : (
@@ -55,21 +57,21 @@ const Balance = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Cash</span>
-                <span className="text-md font-mono bg-muted px-3 py-1 rounded">
+                <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
                   ${info!.cash.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Stock Holdings</span>
-                <span className="text-md font-mono bg-muted px-3 py-1 rounded">
+                <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
                   {info!.stock}
                 </span>
               </div>
             </div>
           )
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -66,30 +67,28 @@ const MakeOrder = () => {
   };
 
   return (
-    <div className="w-full mx-auto text-card-foreground border py-4 px-6 rounded-xl">
-      <div className="pb-4">
-        <h2 className="text-xl font-bold text-center">Make Order</h2>
-      </div>
-      <div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-center">Make Order</CardTitle>
+      </CardHeader>
+      <CardContent>
         <Tabs
           value={side}
           onValueChange={(v: string) => setSide(v as "bid" | "ask")}
           className="mb-4">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger
-              value="bid"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-l-md">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="bid" className="data-[state=active]:bg-primary">
               BUY (Bid)
             </TabsTrigger>
             <TabsTrigger
               value="ask"
-              className="data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground rounded-r-md">
+              className="data-[state=active]:bg-destructive">
               SELL (Ask)
             </TabsTrigger>
           </TabsList>
         </Tabs>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="price">Price</Label>
             <div className="flex gap-2 items-center">
               <Input
@@ -101,37 +100,35 @@ const MakeOrder = () => {
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="Enter price"
                 required
-                className="mt-1 flex-1"
+                className="flex-1"
               />
             </div>
             {quotePrice && (
-              <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+              <div className="text-xs text-muted-foreground flex items-center gap-2">
                 <span>Market Price:</span>
-                <span className="font-mono font-semibold text-base text-primary">
+                <span className="font-mono font-semibold text-primary">
                   {quotePrice}
                 </span>
                 <Button
                   type="button"
                   onClick={() => {
                     if (quotePrice) {
-                      // Format to 6 decimals if it's a number
                       const formatted = isNaN(Number(quotePrice))
                         ? quotePrice
                         : Number(quotePrice).toFixed(6).replace(/\.0+$/, "");
                       setPrice(formatted);
                     }
                   }}
-                  className="ml-1 text-primary text-xs font-medium"
+                  className="text-xs font-medium"
                   title="Set as order price"
                   variant="outline"
-                  size="sm"
-                  aria-label="Set as order price">
+                  size="sm">
                   Set
                 </Button>
               </div>
             )}
           </div>
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="quantity">Quantity</Label>
             <Input
               id="quantity"
@@ -142,16 +139,11 @@ const MakeOrder = () => {
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="Enter quantity"
               required
-              className="mt-1"
             />
           </div>
           <Button
             type="submit"
-            className={`w-full font-bold py-2 mt-2 ${
-              side === "bid"
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "bg-red-800 text-destructive-foreground hover:bg-red-700"
-            }`}
+            className="w-full"
             disabled={loading || !price || !quantity}>
             {loading
               ? "Placing Order..."
@@ -160,8 +152,8 @@ const MakeOrder = () => {
               : "Place Sell Order"}
           </Button>
         </form>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

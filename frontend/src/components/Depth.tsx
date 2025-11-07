@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Orderbook, AnonyOrder } from "../types";
 import { Zap } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const wsURL = process.env.NEXT_PUBLIC_WS_URL!;
@@ -105,67 +106,71 @@ const Depth = () => {
   };
 
   return (
-    <div>
-      <div className="py-4 flex items-center justify-center gap-1">
-        <h2 className="text-xl font-bold">Orderbook</h2>
-        <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400 mx-2 animate-bounce" />
-      </div>
-      <div className="flex flex-col items-center px-2">
-        <div className="flex flex-row w-full justify-center items-start h-[60vh] overflow-y-auto">
-          {/* Sell Orders (Asks) */}
-          <table className="min-w-[300px] text-sm overflow-hidden">
-            <thead>
-              <tr className="text-xs uppercase text-muted-foreground">
-                <th className="w-16"></th>
-                <th className="px-4 py-2">Size</th>
-                <th className="px-4 py-2">Sell (Ask)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orderBook?.asks?.length ? (
-                orderBook.asks
-                  .slice(0, 10)
-                  .map((ask) => renderOrderRow(ask, "ask"))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="text-center py-2 text-muted-foreground/50">
-                    No ask orders available
-                  </td>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-center gap-2">
+          <span>Orderbook</span>
+          <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400 animate-bounce" />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center px-2">
+          <div className="flex flex-row w-full justify-center items-start h-[60vh] overflow-y-auto">
+            {/* Sell Orders (Asks) */}
+            <table className="min-w-[300px] text-sm overflow-hidden">
+              <thead>
+                <tr className="text-xs uppercase text-muted-foreground">
+                  <th className="w-16"></th>
+                  <th className="px-4 py-2">Size</th>
+                  <th className="px-4 py-2">Sell (Ask)</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {orderBook?.asks?.length ? (
+                  orderBook.asks
+                    .slice(0, 10)
+                    .map((ask) => renderOrderRow(ask, "ask"))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="text-center py-2 text-muted-foreground/50">
+                      No ask orders available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
 
-          {/* Buy Orders (Bids) */}
-          <table className="min-w-[300px] text-sm overflow-hidden">
-            <thead>
-              <tr className="text-xs uppercase text-muted-foreground">
-                <th className="px-4 py-2">Buy (Bid)</th>
-                <th className="px-4 py-2">Size</th>
-                <th className="w-16"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {orderBook?.bids?.length ? (
-                orderBook.bids
-                  .slice(0, 10)
-                  .map((bid) => renderOrderRow(bid, "bid"))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="text-center py-2 text-muted-foreground/50">
-                    No bid orders available
-                  </td>
+            {/* Buy Orders (Bids) */}
+            <table className="min-w-[300px] text-sm overflow-hidden">
+              <thead>
+                <tr className="text-xs uppercase text-muted-foreground">
+                  <th className="px-4 py-2">Buy (Bid)</th>
+                  <th className="px-4 py-2">Size</th>
+                  <th className="w-16"></th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {orderBook?.bids?.length ? (
+                  orderBook.bids
+                    .slice(0, 10)
+                    .map((bid) => renderOrderRow(bid, "bid"))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="text-center py-2 text-muted-foreground/50">
+                      No bid orders available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

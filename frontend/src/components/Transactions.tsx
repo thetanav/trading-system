@@ -4,6 +4,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Transaction } from "../types";
 import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { RefreshCcw } from "lucide-react";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -33,48 +34,53 @@ export default function Transactions() {
   }, []);
 
   return (
-    <div className="w-96 text-card-foreground border py-4 px-6 rounded-xl">
-      <div className="flex flex-row items-center justify-between pb-4">
-        <h2 className="text-lg font-semibold">Transactions</h2>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-lg font-semibold">Transactions</CardTitle>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => fetchT()}
-          aria-label="Refresh balance">
-          <RefreshCcw
-            className={"w-5 h-5 " + (loading ? "animate-spin" : "")}
-          />
+          disabled={loading}
+          aria-label="Refresh transactions">
+          <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
-      </div>
-      <div>
+      </CardHeader>
+      <CardContent>
         {loading ? (
           <div className="text-muted-foreground">Loading...</div>
         ) : transactions.length === 0 ? (
           <div className="text-muted-foreground">No transactions found.</div>
         ) : (
-          <ul className="divide-y divide-border">
+          <div className="space-y-3">
             {transactions.map((tx) => (
-              <li key={tx.id} className="py-2 flex flex-col gap-1">
-                <div className="flex justify-between">
-                  <span className="font-mono text-xs text-muted-foreground">
+              <div
+                key={tx.id}
+                className="flex flex-col gap-2 p-3 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground font-mono">
                     {new Date(tx.timestamp).toLocaleString()}
                   </span>
                   <span
-                    className={`font-semibold ${
-                      tx.type === "buy" ? "text-green-400" : "text-red-400"
+                    className={`text-sm font-semibold px-2 py-1 rounded ${
+                      tx.type === "buy"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                     }`}>
                     {tx.type.toUpperCase()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Qty: {tx.quantity}</span>
-                  <span>Price: ${tx.price}</span>
+                  <span className="text-muted-foreground">
+                    Qty: {tx.quantity}
+                  </span>
+                  <span className="font-mono">Price: ${tx.price}</span>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

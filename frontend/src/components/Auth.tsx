@@ -33,16 +33,11 @@ export default function Auth() {
 
   if (!token) {
     return (
-      <div className="flex items-center gap-3">
-        <Button
-          asChild
-          variant="ghost"
-          className="hidden sm:flex font-medium text-muted-foreground hover:text-foreground hover:bg-white/10">
+      <div className="flex items-center gap-2">
+        <Button asChild variant="default">
           <Link href="/login">Log In</Link>
         </Button>
-        <Button
-          asChild
-          className="bg-linear-to-r from-blue-500 via-sky-500 to-indigo-500 hover:from-blue-500/90 hover:via-sky-500/90 hover:to-indigo-500/90 text-white shadow-lg shadow-blue-500/20">
+        <Button asChild>
           <Link href="/signup">Create Account</Link>
         </Button>
       </div>
@@ -50,16 +45,11 @@ export default function Auth() {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <Button
-        variant="ghost"
-        asChild
-        className="font-medium text-muted-foreground hover:text-foreground hover:bg-white/10">
+    <div className="flex items-center gap-2">
+      <Button variant="ghost" asChild>
         <Link href="/dashboard">Dashboard</Link>
       </Button>
-      <Button
-        onClick={handleSignOut}
-        className="bg-linear-to-r from-rose-500 to-orange-500 text-white hover:from-rose-500/90 hover:to-orange-500/90 shadow-lg shadow-rose-500/20">
+      <Button variant="outline" onClick={handleSignOut}>
         Sign Out
       </Button>
     </div>
