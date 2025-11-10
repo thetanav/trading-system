@@ -98,7 +98,9 @@ const MakeOrder = () => {
           </div>
           <Button
             type="submit"
-            className="w-full"
+            className={`w-full bg-${
+              side === "bid" ? "green-500" : "destructive"
+            }`}
             disabled={loading || !price || !quantity}>
             {loading
               ? "Placing Order..."

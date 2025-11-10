@@ -14,7 +14,7 @@ export default function Chart() {
   const chartRef = useRef<any>(null);
 
   function fetchChartData() {
-    axios.get(apiURL + "/trade/chart").then((res) => {
+    axios.get(apiURL + "/chart").then((res) => {
       setChartData(res.data);
       console.log("Chart data fetched:", res.data);
     });
@@ -69,7 +69,7 @@ export default function Chart() {
 
   return (
     <div className="w-full">
-      <div className="flex gap-2 items-center justify-center mb-4">
+      <div className="flex justify-end mb-4 mr-4">
         <p className="text-2xl font-black text-green-400">${lastPrice}</p>
       </div>
       <div

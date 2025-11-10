@@ -21,7 +21,7 @@ const Balance = () => {
 
   async function fetchUsers() {
     setLoading(true);
-    const res = await axios.get(apiURL + "/user/", {
+    const res = await axios.get(apiURL + "/user", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -41,19 +41,6 @@ const Balance = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg font-semibold">
-          {info?.name || "Balance"}
-        </CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => fetchUsers()}
-          disabled={loading}
-          aria-label="Refresh balance">
-          <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
-      </CardHeader>
       <CardContent>
         {loading ? (
           <div className="text-muted-foreground">Loading...</div>
@@ -62,13 +49,13 @@ const Balance = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Cash</span>
-                <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
+                <span className="font-mono text-lg font-bold bg-muted px-2 py-1 rounded">
                   ${info!.cash.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Stock Holdings</span>
-                <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
+                <span className="font-mono text-lg font-bold bg-muted px-2 py-1 rounded">
                   {info!.stock}
                 </span>
               </div>

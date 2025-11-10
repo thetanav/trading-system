@@ -40,16 +40,8 @@ export default function Transactions() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader>
         <CardTitle className="text-lg font-semibold">Transactions</CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => fetchT()}
-          disabled={loading}
-          aria-label="Refresh transactions">
-          <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -59,9 +51,7 @@ export default function Transactions() {
         ) : (
           <div className="space-y-3">
             {transactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="flex flex-col gap-2 p-3 border rounded-lg">
+              <div key={tx.id} className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground font-mono">
                     {new Date(tx.timestamp).toLocaleString()}

@@ -48,8 +48,8 @@ const wss = new WebSocket.Server({ server });
 
 export async function sendOrderbook() {
   try {
-    const asks = await redisClient.lRange("orderbook:asks", 0, -1);
-    const bids = await redisClient.lRange("orderbook:bids", 0, -1);
+    const asks = await redisClient.lRange("asks", 0, -1);
+    const bids = await redisClient.lRange("bids", 0, -1);
     const message = JSON.stringify({
       type: "orderbook",
       data: {

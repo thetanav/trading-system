@@ -190,8 +190,8 @@ router.get("/chart", async (req: Request, res: Response) => {
 
 router.get("/depth", async (req: Request, res: Response) => {
   try {
-    const asks = await redisClient.lRange("orderbook:asks", 0, -1);
-    const bids = await redisClient.lRange("orderbook:bids", 0, -1);
+    const asks = await redisClient.lRange("asks", 0, -1);
+    const bids = await redisClient.lRange("bids", 0, -1);
     res.json({
       ok: true,
       data: {
