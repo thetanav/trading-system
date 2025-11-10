@@ -1,23 +1,34 @@
 "use client";
 
 import axios from "axios";
-import { RefreshCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "../components/ui/button";
 import { createChart, CandlestickData } from "lightweight-charts";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function Chart() {
   const [chartData, setChartData] = useState<CandlestickData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
 
   function fetchChartData() {
-    axios.get(apiURL + "/chart").then((res) => {
-      setChartData(res.data);
-      console.log("Chart data fetched:", res.data);
-    });
+    setLoading(true);
+    setError(null);
+    axios
+      .get(apiURL + "/trade/chart")
+      .then((res) => {
+        setChartData(res.data);
+        console.log("Chart data fetched:", res.data);
+      })
+      .catch((err) => {
+        console.error("Error fetching chart data:", err);
+        setError("Failed to load chart data");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   useEffect(() => {
@@ -33,8 +44,8 @@ export default function Chart() {
         width: chartContainerRef.current.clientWidth,
         height: 400,
         layout: {
-          background: { color: "#ffffff" },
-          textColor: "#333",
+          background: { color: "#1E222D" },
+          textColor: "#E0E0E0",
         },
         grid: {
           vertLines: { color: "#e1e1e1" },
@@ -72,6 +83,8 @@ export default function Chart() {
       <div className="flex justify-end mb-4 mr-4">
         <p className="text-2xl font-black text-green-400">${lastPrice}</p>
       </div>
+      {loading && <p>Loading chart...</p>}
+      {error && <p className="text-red-500">{error}</p>}
       <div
         ref={chartContainerRef}
         className="w-full h-[500px] border rounded-xl"

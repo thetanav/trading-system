@@ -2,6 +2,7 @@ import { Chart } from "../types";
 
 // TODO: fix it
 export async function updateChart(chart: Chart[], redisClient: any) {
+  console.log("> updating chart...");
   let currentMinutePrices: number[] = [];
   let lastMinute = Math.floor(Date.now() / 60000) * 60000;
 
@@ -38,5 +39,5 @@ export async function updateChart(chart: Chart[], redisClient: any) {
   } catch (err) {
     console.error("Failed to update chart:", err);
   }
-  setTimeout(() => updateChart(chart, redisClient), 1000);
+  setTimeout(() => updateChart(chart, redisClient), 60000);
 }

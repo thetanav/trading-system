@@ -3,6 +3,9 @@ import cors from "cors";
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import { createClient } from "redis";
+import compression from "compression";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import tradeRoutes from "./routes/trade";
@@ -13,9 +16,17 @@ import { chart } from "./memory";
 dotenv.config();
 
 export const app = express();
+app.use(helmet());
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
 
 // API Routes
 app.use("/trade", tradeRoutes);
