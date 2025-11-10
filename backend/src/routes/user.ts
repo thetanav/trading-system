@@ -24,11 +24,6 @@ router.get("/transactions", auth, async (req: Request, res: Response) => {
   res.json(data);
 });
 
-router.get("/users", async (req: Request, res: Response) => {
-  const data = await db.select().from(users);
-  res.json(data);
-});
-
 router.get("/u/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   const row = await db

@@ -14,7 +14,7 @@ export default function Chart() {
   const chartRef = useRef<any>(null);
 
   function fetchChartData() {
-    axios.get(apiURL + "/chart").then((res) => {
+    axios.get(apiURL + "/trade/chart").then((res) => {
       setChartData(res.data);
       console.log("Chart data fetched:", res.data);
     });
@@ -70,18 +70,12 @@ export default function Chart() {
   return (
     <div className="w-full">
       <div className="flex gap-2 items-center justify-center mb-4">
-        <p className="text-lg font-bold font-mono tracking-tight text-green-600">
-          Last Price: {lastPrice}
-        </p>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={fetchChartData}
-          aria-label="Refresh chart">
-          <RefreshCcw className="w-5 h-5" />
-        </Button>
+        <p className="text-2xl font-black text-green-400">${lastPrice}</p>
       </div>
-      <div ref={chartContainerRef} className="w-full h-[400px]" />
+      <div
+        ref={chartContainerRef}
+        className="w-full h-[500px] border rounded-xl"
+      />
     </div>
   );
 }

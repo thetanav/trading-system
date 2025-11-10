@@ -1,24 +1,32 @@
 import { Router, Request, Response } from "express";
-import { UserOrder } from "../types";
 import { redisClient, sendOrderbook } from "../index";
 import { db } from "../db";
 import { transactions, users } from "../schema";
 import { eq, sql } from "drizzle-orm";
 import auth from "../middlware/jwt";
 import { chart } from "../memory";
+import { z } from "zod";
 
 const router = Router();
 
-router.get("/echo", auth, (req: Request, res: Response) => {
-  res.json({
-    ok: true,
-    msg: "echo success",
-  });
+const makeOrderSchema = z.object({
+  side: z.enum(["bid", "ask"]),
+  price: z
+    .number()
+    .refine(
+      (val) => Number.isFinite(val) && Math.round(val * 100) === val * 100,
+      { message: "Must have at most 2 decimal places" }
+    ),
+  market: z.boolean().default(false),
+  quantity: z.int().positive(),
 });
 
 // Place a limit order
 router.post("/makeorder", auth, async (req: Request, res: Response) => {
-  const { side, price, quantity }: UserOrder = req.body;
+  const { side, price, quantity, market } = await makeOrderSchema.parseAsync(
+    req.body
+  );
+
   const userRow = await db
     .select()
     .from(users)
@@ -26,12 +34,14 @@ router.post("/makeorder", auth, async (req: Request, res: Response) => {
   const userData = userRow[0];
   const userId = userData.id;
 
+  // if market then set price to market price
+
   // check for enough balance
   if (side == "bid") {
     if (!userData || Number(userData.cash) < price * quantity) {
       res.json({
         ok: false,
-        msg: `⚠️ Not enough cash.`,
+        msg: `Not enough cash.`,
       });
       return;
     }
@@ -39,7 +49,7 @@ router.post("/makeorder", auth, async (req: Request, res: Response) => {
     if (!userData || Number(userData.stock) < quantity) {
       res.json({
         ok: false,
-        msg: `⚠️ Not enough quantity.`,
+        msg: `Not enough quantity.`,
       });
       return;
     }
@@ -58,7 +68,7 @@ router.post("/makeorder", auth, async (req: Request, res: Response) => {
 
   // Add remaining order to Redis orderbook
   const order = { userId, price, quantity: remainingQty };
-  const key = side === "bid" ? "orderbook:bids" : "orderbook:asks";
+  const key = side === "bid" ? "bids" : "asks";
   await redisClient.rPush(key, JSON.stringify(order));
 
   sendOrderbook();
@@ -67,18 +77,6 @@ router.post("/makeorder", auth, async (req: Request, res: Response) => {
     msg: `${
       quantity - remainingQty
     } filled. ${remainingQty} placed in orderbook.`,
-  });
-});
-
-// it is just an orderbook (deprecated, use /orderbook endpoint instead)
-router.get("/depth", async (req: Request, res: Response) => {
-  const asks = await redisClient.lRange("orderbook:asks", 0, -1);
-  const bids = await redisClient.lRange("orderbook:bids", 0, -1);
-  res.json({
-    orderbook: {
-      asks: asks.map((a: any) => JSON.parse(a)),
-      bids: bids.map((b: any) => JSON.parse(b)),
-    },
   });
 });
 
@@ -91,8 +89,8 @@ async function fillOrders(
   let remainingQuantity = quantity;
   if (side === "bid") {
     // Match against asks
-    let asks = (await redisClient.lRange("orderbook:asks", 0, -1)).map(
-      (a: any) => JSON.parse(a)
+    let asks = (await redisClient.lRange("asks", 0, -1)).map((a: any) =>
+      JSON.parse(a)
     );
     for (let i = asks.length - 1; i >= 0; i--) {
       if (asks[i].userId === userId) continue;
@@ -101,20 +99,20 @@ async function fillOrders(
           asks[i].quantity -= remainingQuantity;
           flipBalance(asks[i].userId, userId, remainingQuantity, asks[i].price);
           // Update ask in Redis
-          await redisClient.lSet("orderbook:asks", i, JSON.stringify(asks[i]));
+          await redisClient.lSet("asks", i, JSON.stringify(asks[i]));
           return 0;
         } else {
           remainingQuantity -= asks[i].quantity;
           flipBalance(asks[i].userId, userId, asks[i].quantity, asks[i].price);
           // Remove ask from Redis
-          await redisClient.lRem("orderbook:asks", 1, JSON.stringify(asks[i]));
+          await redisClient.lRem("asks", 1, JSON.stringify(asks[i]));
         }
       }
     }
   } else {
     // Match against bids
-    let bids = (await redisClient.lRange("orderbook:bids", 0, -1)).map(
-      (b: any) => JSON.parse(b)
+    let bids = (await redisClient.lRange("bids", 0, -1)).map((b: any) =>
+      JSON.parse(b)
     );
     for (let i = bids.length - 1; i >= 0; i--) {
       if (bids[i].userId === userId) continue;
@@ -123,13 +121,13 @@ async function fillOrders(
           bids[i].quantity -= remainingQuantity;
           flipBalance(userId, bids[i].userId, remainingQuantity, bids[i].price);
           // Update bid in Redis
-          await redisClient.lSet("orderbook:bids", i, JSON.stringify(bids[i]));
+          await redisClient.lSet("bids", i, JSON.stringify(bids[i]));
           return 0;
         } else {
           remainingQuantity -= bids[i].quantity;
           flipBalance(userId, bids[i].userId, bids[i].quantity, bids[i].price);
           // Remove bid from Redis
-          await redisClient.lRem("orderbook:bids", 1, JSON.stringify(bids[i]));
+          await redisClient.lRem("bids", 1, JSON.stringify(bids[i]));
         }
       }
     }
@@ -171,7 +169,7 @@ async function flipBalance(
   // Make record in transaction history
   await db.insert(transactions).values({
     //@ts-ignore
-    userIsd: userId2.toString(),
+    user_id: userId2.toString(),
     type: "buy",
     quantity,
     price,
@@ -190,15 +188,21 @@ router.get("/chart", async (req: Request, res: Response) => {
   ); // last 12 hours
 });
 
-router.get("/orderbook", async (req: Request, res: Response) => {
+router.get("/depth", async (req: Request, res: Response) => {
   try {
     const asks = await redisClient.lRange("orderbook:asks", 0, -1);
     const bids = await redisClient.lRange("orderbook:bids", 0, -1);
     res.json({
       ok: true,
       data: {
-        asks: asks.map((a) => JSON.parse(a)),
-        bids: bids.map((b) => JSON.parse(b)),
+        asks: asks.map((a) => {
+          const parsed = JSON.parse(a);
+          return { price: parsed.price, quantity: parsed.quantity };
+        }),
+        bids: bids.map((b) => {
+          const parsed = JSON.parse(b);
+          return { price: parsed.price, quantity: parsed.quantity };
+        }),
       },
     });
   } catch (err) {

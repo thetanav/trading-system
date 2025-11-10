@@ -21,7 +21,7 @@ const Balance = () => {
 
   async function fetchUsers() {
     setLoading(true);
-    const res = await axios.get(apiURL + "/me", {
+    const res = await axios.get(apiURL + "/user/", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

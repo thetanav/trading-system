@@ -33,6 +33,7 @@ const MakeOrder = () => {
           side,
           price: Number(price),
           quantity: Number(quantity),
+          market: false,
         },
         {
           headers: {
@@ -56,9 +57,6 @@ const MakeOrder = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-center">Make Order</CardTitle>
-      </CardHeader>
       <CardContent>
         <Tabs
           value={side}
@@ -76,32 +74,25 @@ const MakeOrder = () => {
           </TabsList>
         </Tabs>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="price">Price</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="any"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="Enter price"
-                required
-                className="flex-1"
-              />
-            </div>
+          <div className="flex space-x-2 items-center justify-between">
+            <p>Price</p>
+            <Input
+              id="price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="..."
+              required
+              className="w-24"
+            />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="quantity">Quantity</Label>
+          <div className="flex space-x-2 items-center justify-between">
+            <p>Quantity</p>
             <Input
               id="quantity"
-              type="number"
-              min="0"
-              step="any"
+              className="w-24"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              placeholder="Enter quantity"
+              placeholder="..."
               required
             />
           </div>

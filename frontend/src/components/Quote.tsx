@@ -20,12 +20,8 @@ const Quote = () => {
   const [chartData, setChartData] = useState<any[]>([]);
 
   function fetchChartData() {
-    axios.get(apiURL + "/chart").then((res) => {
-      if (res.data.ok) {
-        setChartData(res.data.data);
-      } else {
-        setChartData([]);
-      }
+    axios.get(apiURL + "/trade/chart").then((res) => {
+      setChartData(res.data);
     });
   }
 
@@ -34,7 +30,7 @@ const Quote = () => {
   }, []);
 
   const lastPrice =
-    chartData.length > 0 ? chartData[chartData.length - 1].price : "N/A";
+    chartData.length > 0 ? chartData[chartData.length - 1].close : "N/A";
 
   return (
     <div className="w-full">
@@ -56,7 +52,7 @@ const Quote = () => {
           <XAxis dataKey="time" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="price" stroke="#8884d8" />
+          <Line type="monotone" dataKey="close" stroke="#8884d8" />
         </LineChart>
       </ResponsiveContainer>
     </div>

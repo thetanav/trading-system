@@ -6,8 +6,8 @@ export async function updateChart(chart: Chart[], redisClient: any) {
   let lastMinute = Math.floor(Date.now() / 60000) * 60000;
 
   try {
-    const asks = await redisClient.lRange("orderbook:asks", 0, -1);
-    const bids = await redisClient.lRange("orderbook:bids", 0, -1);
+    const asks = await redisClient.lRange("asks", 0, -1);
+    const bids = await redisClient.lRange("bids", 0, -1);
     if (asks.length !== 0 && bids.length !== 0) {
       const bestAsk = JSON.parse(asks[0]);
       const bestBid = JSON.parse(bids[0]);

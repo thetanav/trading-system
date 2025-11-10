@@ -15,13 +15,6 @@ export interface Order {
   quantity: number;
 }
 
-export interface UserOrder {
-  side: "bid" | "ask";
-  userId: string;
-  price: number;
-  quantity: number;
-}
-
 export interface AnonyOrder {
   price: number;
   size: number;

@@ -13,18 +13,18 @@ export default function Dashboard() {
       <Nav />
       <CheckAuth />
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="flex gap-2">
           {/* Orderbook - spans 6 columns on large screens */}
-          <div className="lg:col-span-6">
+          <div className="flex-2 flex flex-col gap-2">
             <Chart />
-            <Depth />
+            <Transactions />
           </div>
 
           {/* Right sidebar - spans 6 columns on large screens */}
-          <div className="lg:col-span-6 space-y-6">
-            {/* <Balance /> */}
+          <div className="flex-1 flex flex-col gap-2">
+            <Balance />
             <MakeOrder />
-            <Transactions />
+            <Depth />
           </div>
         </div>
       </div>

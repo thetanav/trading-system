@@ -9,13 +9,6 @@ import { eq } from "drizzle-orm";
 const router = Router();
 dotenv.config();
 
-router.get("/echo", (req: Request, res: Response) => {
-  res.json({
-    ok: true,
-    msg: "echo success",
-  });
-});
-
 router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const userRow = await db.select().from(users).where(eq(users.email, email));

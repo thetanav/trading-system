@@ -53,8 +53,14 @@ export async function sendOrderbook() {
     const message = JSON.stringify({
       type: "orderbook",
       data: {
-        asks: asks.map((a) => JSON.parse(a)),
-        bids: bids.map((b) => JSON.parse(b)),
+        asks: asks.map((a) => {
+          const parsed = JSON.parse(a);
+          return { price: parsed.price, quantity: parsed.quantity };
+        }),
+        bids: bids.map((b) => {
+          const parsed = JSON.parse(b);
+          return { price: parsed.price, quantity: parsed.quantity };
+        }),
       },
     });
     wss.clients.forEach((client) => {
