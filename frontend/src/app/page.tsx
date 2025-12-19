@@ -1,4 +1,3 @@
-import { Nav } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -10,28 +9,13 @@ import {
   Users,
   Globe,
 } from "lucide-react";
-import { api } from "@/lib/api";
-import { cookies } from "next/headers";
 
-export default async function Page() {
-  const cookieStore = await cookies();
-  const authToken = cookieStore.get("auth_token");
-  const cookieHeader = authToken ? `auth_token=${authToken.value}` : undefined;
-
-  const data = await api<{
-    user: {
-      id: string;
-      name: string;
-      email: string;
-    };
-  }>("/user/verify", { cookieHeader });
-
+export default function Page() {
   return (
-    <div className="min-h-screen">
-      <Nav />
+    <div className="">
       {/* Hero Section */}
       <section className="px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="text-center">
           <div className="mb-8">
             <div className="flex items-center justify-center mb-6">
               <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4">
@@ -49,18 +33,12 @@ export default async function Page() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            {data && data.user ? (
-              <Button asChild size="lg">
-                <Link href="/signup" className="flex items-center space-x-2">
-                  <span>Start Trading Now</span>
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="outline" asChild size="lg">
-                <Link href="/login">Sign Up</Link>
-              </Button>
-            )}
+            <Button asChild size="lg">
+              <Link href="/signup" className="flex items-center space-x-2">
+                <span>Start Trading Now</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </Button>
           </div>
 
           {/* Stats */}

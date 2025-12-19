@@ -41,9 +41,6 @@ export default function Login() {
       toast.success(data.msg);
       router.push("/dashboard");
     },
-    onError: (data: any) => {
-      toast.error(data.msg);
-    },
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

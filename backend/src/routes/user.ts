@@ -3,14 +3,23 @@ import auth from "../middlware/jwt";
 import { db } from "../db";
 import { transactions, users } from "../schema";
 import { eq } from "drizzle-orm";
+import { email } from "zod";
 
 const router = Router();
 
 router.get("/", auth, async (req: Request, res: Response) => {
-  const { email } = req.body;
-  const row = await db.select().from(users).where(eq(users.email, email));
+  const row = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, req.body.jwt.email));
   const user = row[0];
-  res.json(user);
+  res.json({
+    cash: user.cash,
+    stock: user.stock,
+    createdAt: user.createdAt,
+    email: user.email,
+    name: user.name,
+  });
 });
 
 router.get("/verify", auth, async (req: Request, res: Response) => {
@@ -18,8 +27,10 @@ router.get("/verify", auth, async (req: Request, res: Response) => {
 });
 
 router.get("/transactions", auth, async (req: Request, res: Response) => {
-  const { email } = req.body;
-  const row = await db.select().from(users).where(eq(users.email, email));
+  const row = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, req.body.jwt.email));
   const user = row[0];
   const data = await db
     .select()

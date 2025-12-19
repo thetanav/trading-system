@@ -1,8 +1,10 @@
 export interface User {
   id: string;
   name: string;
+  email: string;
   stock: number;
   cash: number;
+  createdAt?: string;
 }
 
 export interface Order {

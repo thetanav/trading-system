@@ -1,56 +1,43 @@
 "use client";
 
-import axios from "axios";
-import { useEffect, useState } from "react";
 import { Transaction } from "../types";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { RefreshCcw } from "lucide-react";
+import { Loader2, RefreshCcw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import Loadable from "next/dist/shared/lib/loadable.shared-runtime";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function Transactions() {
-  const [token] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("token");
-    }
-    return null;
+  const { data, refetch, isLoading } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: async () => await api<Transaction[]>("/user/transactions"),
+    refetchOnWindowFocus: true,
   });
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  async function fetchT() {
-    setLoading(true);
-    const res = await axios.get(apiURL + "/user/transactions", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.data) {
-      setTransactions(res.data);
-      setLoading(false);
-      console.log("transaction comp re");
-    }
-  }
-
-  useEffect(() => {
-    fetchT();
-  }, []);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Transactions</CardTitle>
+        <CardTitle className="text-lg font-semibold flex items-center justify-between">
+          Transactions
+          <Button onClick={() => refetch()} variant="ghost" size="icon">
+            <RefreshCcw />
+          </Button>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="text-muted-foreground">Loading...</div>
-        ) : transactions.length === 0 ? (
+        {isLoading ? (
+          <div className="text-muted-foreground flex items-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Loading...
+          </div>
+        ) : data == undefined || data.length === 0 ? (
           <div className="text-muted-foreground">No transactions found.</div>
         ) : (
           <div className="space-y-3">
-            {transactions.map((tx) => (
+            {data.map((tx) => (
               <div key={tx.id} className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground font-mono">
