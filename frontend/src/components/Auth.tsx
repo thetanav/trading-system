@@ -4,43 +4,40 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { useCallback, useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 export default function Auth() {
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const syncToken = () => {
-      const storedToken = localStorage.getItem("token");
-      setToken(storedToken && storedToken.length > 0 ? storedToken : null);
-    };
-
-    syncToken();
-
-    window.addEventListener("storage", syncToken);
-
-    return () => {
-      window.removeEventListener("storage", syncToken);
-    };
-  }, []);
-
   const router = useRouter();
+  const { data } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () =>
+      api<{
+        user: {
+          id: string;
+          name: string;
+          email: string;
+        };
+      }>("/user/verify"),
+  });
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => await api("/auth/logout"),
+  });
 
   const handleSignOut = useCallback(() => {
     localStorage.removeItem("token");
-    setToken(null);
+    mutate();
     router.push("/");
-  }, [router]);
+  }, []);
 
-  if (!token) {
+  if (!data) return;
+
+  if (!data.user) {
     return (
-      <div className="flex items-center gap-2">
-        <Button asChild variant="default">
-          <Link href="/login">Log In</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/signup">Create Account</Link>
-        </Button>
-      </div>
+      <Button asChild>
+        <Link href="/signup">Create Account</Link>
+      </Button>
     );
   }
 
@@ -49,7 +46,8 @@ export default function Auth() {
       <Button variant="ghost" asChild>
         <Link href="/dashboard">Dashboard</Link>
       </Button>
-      <Button variant="outline" onClick={handleSignOut}>
+      <Button variant="outline" onClick={handleSignOut} disabled={isPending}>
+        {isPending && <Loader2 className="w-5 h-5 animate-spin" />}
         Sign Out
       </Button>
     </div>

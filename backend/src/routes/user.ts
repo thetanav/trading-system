@@ -13,6 +13,10 @@ router.get("/", auth, async (req: Request, res: Response) => {
   res.json(user);
 });
 
+router.get("/verify", auth, async (req: Request, res: Response) => {
+  res.json({ user: req.body.jwt });
+});
+
 router.get("/transactions", auth, async (req: Request, res: Response) => {
   const { email } = req.body;
   const row = await db.select().from(users).where(eq(users.email, email));

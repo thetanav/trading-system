@@ -15,35 +15,40 @@ import { Button } from "../../components/ui/button";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-
-const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { useMutation } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const { isPending, mutate } = useMutation({
+    mutationFn: async (data: any) =>
+      await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (data: any) => {
+      if (!data.ok) {
+        toast.error(data.msg);
+        return;
+      }
+      localStorage.setItem("token", data.token);
+      toast.success(data.msg);
+      router.push("/dashboard");
+    },
+    onError: (data: any) => {
+      toast.error(data.msg);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post(apiURL + "/login", {
-        email,
-        password,
-      });
-      if (res.data && res.data.ok && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        toast.success(res.data.msg);
-        router.push("/dashboard");
-      } else {
-        toast.error(res.data?.msg || "Login failed");
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.msg || "Network error");
-    } finally {
-      setLoading(false);
-    }
+    mutate(formData);
   };
 
   return (
@@ -61,8 +66,10 @@ export default function Login() {
               <Input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
               />
             </div>
@@ -71,13 +78,16 @@ export default function Login() {
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending && <Loader2 className="w-5 h-5 animate-spin" />}
+              Login
             </Button>
           </form>
         </CardContent>

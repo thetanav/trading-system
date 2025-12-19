@@ -32,17 +32,32 @@ router.post("/login", async (req: Request, res: Response) => {
   }
 
   const token = jwt.sign(
-    { name: userData.name, email: userData.email },
+    { id: userData.id, name: userData.name, email: userData.email },
     process.env.JWT_SECRET!,
     {
-      expiresIn: "24h",
+      expiresIn: "7d",
     }
   );
+
+  res.cookie("auth_token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
   res.json({
     ok: true,
     msg: "Login successfully",
     token,
+  });
+});
+
+router.get("/logout", async (req: Request, res: Response) => {
+  res.clearCookie("auth_token");
+  res.json({
+    ok: true,
+    msg: "Logout successfully",
   });
 });
 

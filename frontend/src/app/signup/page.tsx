@@ -13,40 +13,38 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
 import { useState } from "react";
-import axios from "axios";
 import { toast } from "sonner";
-
-const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { useMutation } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 export default function Signup() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const { isPending, mutate } = useMutation({
+    mutationFn: async (data: any) =>
+      await api("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (data: any) => {
+      toast.success(data.msg);
+      router.push("/login");
+    },
+    onError: (data: any) => {
+      toast.error(data.msg);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post(apiURL + "/signup", {
-        email,
-        password,
-        confirmPassword,
-        name,
-      });
-      if (res.data && res.data.ok) {
-        toast.success(res.data.msg);
-        router.push("/login");
-      } else {
-        toast.error(res.data?.msg || "Signup failed");
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.msg || "Network error");
-    } finally {
-      setLoading(false);
-    }
+    mutate(formData);
   };
 
   return (
@@ -64,8 +62,10 @@ export default function Signup() {
               <Input
                 id="name"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
               />
             </div>
@@ -74,8 +74,10 @@ export default function Signup() {
               <Input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
               />
             </div>
@@ -84,8 +86,10 @@ export default function Signup() {
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
               />
             </div>
@@ -94,13 +98,16 @@ export default function Signup() {
               <Input
                 id="confirm-password"
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmPassword: e.target.value })
+                }
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing up..." : "Sign up"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending && <Loader2 className="w-5 h-5 animate-spin" />}
+              Sign up
             </Button>
           </form>
         </CardContent>

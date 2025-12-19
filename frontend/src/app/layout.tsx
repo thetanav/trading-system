@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { TrendingUp } from "lucide-react";
 import { Toaster } from "sonner";
 import "./globals.css";
+import Providers from "@/components/provider";
 
 export const metadata: Metadata = {
   title: "TradeX",
@@ -16,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-background text-foreground">
-        {children}
+        <Providers>{children}</Providers>
         <footer className="px-6 py-12 bg-muted/50 text-muted-foreground border-t">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center">

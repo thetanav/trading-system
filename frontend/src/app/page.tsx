@@ -10,8 +10,22 @@ import {
   Users,
   Globe,
 } from "lucide-react";
+import { api } from "@/lib/api";
+import { cookies } from "next/headers";
 
-export default function Index() {
+export default async function Page() {
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("auth_token");
+  const cookieHeader = authToken ? `auth_token=${authToken.value}` : undefined;
+
+  const data = await api<{
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  }>("/user/verify", { cookieHeader });
+
   return (
     <div className="min-h-screen">
       <Nav />
@@ -35,15 +49,18 @@ export default function Index() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Button asChild size="lg">
-              <Link href="/signup" className="flex items-center space-x-2">
-                <span>Start Trading Now</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </Button>
-            <Button variant="outline" asChild size="lg">
-              <Link href="/login">View Demo</Link>
-            </Button>
+            {data && data.user ? (
+              <Button asChild size="lg">
+                <Link href="/signup" className="flex items-center space-x-2">
+                  <span>Start Trading Now</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" asChild size="lg">
+                <Link href="/login">Sign Up</Link>
+              </Button>
+            )}
           </div>
 
           {/* Stats */}

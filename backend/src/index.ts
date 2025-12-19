@@ -12,21 +12,28 @@ import tradeRoutes from "./routes/trade";
 import express, { Request, Response } from "express";
 import { updateChart } from "./utils/chart";
 import { chart } from "./memory";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 export const app = express();
-app.use(helmet());
-app.use(compression());
-app.use(cors());
+// app.use(helmet());
+// app.use(compression());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// app.use(express.urlencoded({ extended: false }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
 });
-app.use(limiter);
+// app.use(limiter);
 
 // API Routes
 app.use("/trade", tradeRoutes);

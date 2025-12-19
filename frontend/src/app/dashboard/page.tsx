@@ -5,13 +5,11 @@ import { toast } from "sonner";
 import Transactions from "../../components/Transactions";
 import { Nav } from "../../components/Navbar";
 import Chart from "@/components/Chart";
-import CheckAuth from "@/components/CheckAuth";
 
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Nav />
-      <CheckAuth />
       <div className="container mx-auto px-4 py-6">
         <div className="flex gap-2">
           {/* Orderbook - spans 6 columns on large screens */}
