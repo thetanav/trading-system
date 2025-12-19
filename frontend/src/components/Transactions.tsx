@@ -15,6 +15,7 @@ export default function Transactions() {
     queryKey: ["transactions"],
     queryFn: async () => await api<Transaction[]>("/user/transactions"),
     refetchOnWindowFocus: true,
+    retry: false,
   });
 
   return (
@@ -22,8 +23,12 @@ export default function Transactions() {
       <CardHeader>
         <CardTitle className="text-lg font-semibold flex items-center justify-between">
           Transactions
-          <Button onClick={() => refetch()} variant="ghost" size="icon">
-            <RefreshCcw />
+          <Button
+            onClick={() => refetch()}
+            variant="ghost"
+            size="icon"
+            disabled={isLoading}>
+            <RefreshCcw className={isLoading ? "animate-spin" : ""} />
           </Button>
         </CardTitle>
       </CardHeader>

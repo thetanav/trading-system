@@ -26,7 +26,7 @@ export default function Chart() {
       }
       const chart = createChart(chartContainerRef.current, {
         width: chartContainerRef.current.clientWidth,
-        height: 400,
+        height: chartContainerRef.current.clientHeight,
         layout: {
           background: { color: "#1E222D" },
           textColor: "#E0E0E0",
@@ -63,7 +63,7 @@ export default function Chart() {
     data && data.length > 0 ? data[data.length - 1].close : "N/A";
 
   return (
-    <div className="w-full">
+    <div className="">
       <div className="flex justify-end mb-4 mr-4">
         <p className="text-2xl font-black text-green-400">${lastPrice}</p>
       </div>

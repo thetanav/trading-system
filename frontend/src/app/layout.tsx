@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen max-w-9xl mx-auto bg-background text-foreground">
+      <body className="min-h-screen max-w-7xl border mx-auto bg-background text-foreground">
         <Providers>
           <Nav />
           {children}
