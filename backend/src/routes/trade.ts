@@ -3,7 +3,7 @@ import { redisClient, sendOrderbook } from "../index";
 import { db } from "../db";
 import { transactions, users } from "../schema";
 import { eq, sql } from "drizzle-orm";
-import auth from "../middlware/jwt";
+import auth from "../middleware/jwt";
 import { chart } from "../memory";
 import { z } from "zod";
 
@@ -151,11 +151,10 @@ async function flipBalance(
     .where(eq(users.id, Number(userId1)));
   // Make record in transaction history
   await db.insert(transactions).values({
-    //@ts-ignore
-    user_id: userId1.toString(),
+    user_id: Number(userId1),
     type: "sell",
-    quantity,
-    price,
+    quantity: quantity.toString(),
+    price: price.toString(),
   });
 
   // Atomically update user2 (buyer): increase stock, decrease cash
@@ -168,11 +167,10 @@ async function flipBalance(
     .where(eq(users.id, Number(userId2)));
   // Make record in transaction history
   await db.insert(transactions).values({
-    //@ts-ignore
-    user_id: userId2.toString(),
+    user_id: Number(userId2),
     type: "buy",
-    quantity,
-    price,
+    quantity: quantity.toString(),
+    price: price.toString(),
   });
 }
 

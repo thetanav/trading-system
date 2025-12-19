@@ -1,9 +1,8 @@
 import { Request, Response, Router } from "express";
-import auth from "../middlware/jwt";
+import auth from "../middleware/jwt";
 import { db } from "../db";
 import { transactions, users } from "../schema";
 import { eq } from "drizzle-orm";
-import { email } from "zod";
 
 const router = Router();
 
