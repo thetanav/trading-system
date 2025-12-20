@@ -1,10 +1,7 @@
 import http from "http";
 import cors from "cors";
-import WebSocket from "ws";
 import dotenv from "dotenv";
 import { createClient } from "redis";
-import compression from "compression";
-import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
@@ -17,22 +14,20 @@ import cookieParser from "cookie-parser";
 dotenv.config();
 
 export const app = express();
-app.use(helmet());
-app.use(compression());
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
 });
 app.use(limiter);
+
+const clients = new Set<{
+  res: express.Response;
+}>();
 
 // API Routes
 app.use("/trade", tradeRoutes);
@@ -60,14 +55,28 @@ app.get("/ping", (req: Request, res: Response) => {
     .json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+// app.get("/sse/orderbook", (req: Request, res: Response) => {
+//   res.set({
+//     "Content-Type": "text/event-stream",
+//     "Cache-Control": "no-cache",
+//     Connection: "keep-alive",
+//   });
+
+//   res.flushHeaders();
+
+//   const client = { res };
+//   clients.add(client);
+
+//   req.on("close", () => {
+//     clients.delete(client);
+//   });
+// });
 
 export async function sendOrderbook() {
   try {
     const asks = await redisClient.lRange("asks", 0, -1);
     const bids = await redisClient.lRange("bids", 0, -1);
-    const message = JSON.stringify({
+    const orderbook = JSON.stringify({
       type: "orderbook",
       data: {
         asks: asks.map((a) => {
@@ -80,17 +89,14 @@ export async function sendOrderbook() {
         }),
       },
     });
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
+    for (const client of clients) {
+      client.res.write(`event: orderbook\n`);
+      client.res.write(`data: ${JSON.stringify(orderbook)}\n\n`);
+    }
   } catch (err: any) {
     console.error("Failed to broadcast orderbook from Redis", err);
   }
 }
 
-setTimeout(sendOrderbook, 1000);
-
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

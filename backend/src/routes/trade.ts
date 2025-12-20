@@ -30,7 +30,7 @@ router.post("/makeorder", auth, async (req: Request, res: Response) => {
   const userRow = await db
     .select()
     .from(users)
-    .where(eq(users.email, req.body.email));
+    .where(eq(users.email, req.body.jwt.email));
   const userData = userRow[0];
   const userId = userData.id;
 
