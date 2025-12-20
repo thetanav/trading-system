@@ -1,18 +1,23 @@
-import { Request, Response, Router } from "express";
+import { Hono } from "hono";
 import auth from "../middleware/jwt";
 import { db } from "../db";
 import { transactions, users } from "../schema";
 import { eq } from "drizzle-orm";
 
-const router = Router();
+const router = new Hono<{
+  Variables: {
+    jwt: any;
+  };
+}>();
 
-router.get("/", auth, async (req: Request, res: Response) => {
+router.get("/", auth, async (c) => {
+  const jwt = (c as any).jwt;
   const row = await db
     .select()
     .from(users)
-    .where(eq(users.email, req.body.jwt.email));
+    .where(eq(users.email, jwt.email));
   const user = row[0];
-  res.json({
+  return c.json({
     cash: user.cash,
     stock: user.stock,
     createdAt: user.createdAt,
@@ -21,31 +26,33 @@ router.get("/", auth, async (req: Request, res: Response) => {
   });
 });
 
-router.get("/verify", auth, async (req: Request, res: Response) => {
-  res.json({ user: req.body.jwt });
+router.get("/verify", auth, async (c) => {
+  const jwt = (c as any).jwt;
+  return c.json({ user: jwt });
 });
 
-router.get("/transactions", auth, async (req: Request, res: Response) => {
+router.get("/transactions", auth, async (c) => {
+  const jwt = (c as any).jwt;
   const row = await db
     .select()
     .from(users)
-    .where(eq(users.email, req.body.jwt.email));
+    .where(eq(users.email, jwt.email));
   const user = row[0];
   const data = await db
     .select()
     .from(transactions)
     .where(eq(transactions.user_id, user.id));
-  res.json(data);
+  return c.json(data);
 });
 
-router.get("/u/:id", async (req: Request, res: Response) => {
-  const { id } = req.params;
+router.get("/u/:id", async (c) => {
+  const id = c.req.param('id');
   const row = await db
     .select()
     .from(users)
     .where(eq(users.id, Number(id)));
   const user = row[0];
-  res.json(user);
+  return c.json(user);
 });
 
 export default router;

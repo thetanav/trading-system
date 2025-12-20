@@ -1,38 +1,43 @@
-import http from "http";
-import cors from "cors";
+import { cors } from "hono/cors";
+import { rateLimiter } from "hono-rate-limiter";
 import dotenv from "dotenv";
 import { createClient } from "redis";
-import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import tradeRoutes from "./routes/trade";
-import express, { Request, Response } from "express";
+import { Hono } from "hono";
 import { updateChart } from "./utils/chart";
 import { chart } from "./memory";
-import cookieParser from "cookie-parser";
 
 dotenv.config();
 
-export const app = express();
-app.use(cors());
-app.use(cookieParser());
-app.use(express.json());
+export const app = new Hono();
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
-const limiter = rateLimit({
+const limiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  limit: 100, // limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later.",
+  keyGenerator: (c) =>
+    c.req.header("CF-Connecting-IP") ||
+    c.req.header("X-Forwarded-For") ||
+    "127.0.0.1",
 });
-app.use(limiter);
+// app.use(limiter);
 
 const clients = new Set<{
-  res: express.Response;
+  res: any; // TODO: update for Hono
 }>();
 
 // API Routes
-app.use("/trade", tradeRoutes);
-app.use("/auth", authRoutes);
-app.use("/user", userRoutes);
+app.route("/trade", tradeRoutes);
+app.route("/auth", authRoutes);
+app.route("/user", userRoutes);
 
 export const redisClient = createClient({
   url: process.env.REDIS_URL,
@@ -49,10 +54,8 @@ redisClient
 
 updateChart(chart, redisClient);
 
-app.get("/ping", (req: Request, res: Response) => {
-  res
-    .status(200)
-    .json({ status: "healthy", timestamp: new Date().toISOString() });
+app.get("/ping", (c) => {
+  return c.json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
 // app.get("/sse/orderbook", (req: Request, res: Response) => {
@@ -98,5 +101,4 @@ export async function sendOrderbook() {
   }
 }
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+export default app;

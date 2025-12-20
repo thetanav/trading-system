@@ -1,20 +1,23 @@
-import { NextFunction, Request, Response } from "express";
+import { MiddlewareHandler } from "hono";
+import { getCookie } from "hono/cookie";
 import jwt from "jsonwebtoken";
 
 const secretKey = process.env.JWT_SECRET!;
 
-export default function auth(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies.auth_token;
+const auth: MiddlewareHandler = async (c, next) => {
+  const token = getCookie(c, 'auth_token');
   
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return c.json({ message: "Unauthorized" }, 401);
   }
 
   try {
-    const decoded = jwt.verify(token, secretKey);
-    req.body.jwt = decoded;
-    next();
+    const decoded = jwt.verify(token, secretKey) as any;
+    (c as any).jwt = decoded;
+    await next();
   } catch (error) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return c.json({ message: "Unauthorized" }, 401);
   }
-}
+};
+
+export default auth;

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createChart, CandlestickData } from "lightweight-charts";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -16,7 +17,7 @@ export default function Chart() {
     queryKey: ["chart"],
     queryFn: async () => await api<CandlestickData[]>("/trade/chart"),
     refetchOnWindowFocus: true,
-    refetchInterval: 60000,
+    refetchInterval: 5 * 60 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -28,12 +29,12 @@ export default function Chart() {
         width: chartContainerRef.current.clientWidth,
         height: chartContainerRef.current.clientHeight,
         layout: {
-          background: { color: "#1E222D" },
-          textColor: "#E0E0E0",
+          background: { color: "#000000" },
+          textColor: "#eee",
         },
         grid: {
-          vertLines: { color: "#e1e1e1" },
-          horzLines: { color: "#e1e1e1" },
+          vertLines: { color: "#545454" },
+          horzLines: { color: "#545454" },
         },
         timeScale: {
           timeVisible: true,
@@ -64,13 +65,18 @@ export default function Chart() {
 
   return (
     <div className="">
-      <div className="flex justify-end mb-4 mr-4">
-        <p className="text-2xl font-black text-green-400">${lastPrice}</p>
+      <div className="flex items-center justify-between mb-4 mx-4">
+        <div>
+          <h3 className="text-2xl font-bold">TNV</h3>
+        </div>
+        <div className="flex items-center gap-3">
+          {isPending && <Loader2 className="w-5 h-5 animate-spin" />}
+          <p className="text-2xl font-bold text-green-400">${lastPrice}</p>
+        </div>
       </div>
-      {isPending && <p>Loading chart...</p>}
       <div
         ref={chartContainerRef}
-        className="w-full h-[500px] border rounded-xl cursor-grab active:cursor-grabbing"
+        className="w-full h-[500px] border rounded-xl cursor-grab active:cursor-grabbing overflow-hidden"
       />
     </div>
   );

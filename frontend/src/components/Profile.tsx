@@ -11,7 +11,6 @@ const Profile = () => {
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["user_info"],
     queryFn: async () => await api<UserType | null>("/user"),
-    refetchOnWindowFocus: true,
   });
 
   const formatDate = (dateString?: string) => {
@@ -59,7 +58,7 @@ const Profile = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-8 w-8"
           onClick={() => refetch()}
           disabled={isFetching}>
           <RefreshCcw
@@ -70,10 +69,11 @@ const Profile = () => {
 
       <CardContent className="space-y-3">
         {/* Portfolio Value */}
-        <div className="bg-muted/50 rounded-lg p-3">
+        <div>
           <p className="text-xs text-muted-foreground mb-1">Total Value</p>
           <p className="font-mono text-xl font-bold">
-            ${totalValue.toLocaleString(undefined, {
+            $
+            {totalValue.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -82,7 +82,7 @@ const Profile = () => {
 
         {/* Cash & Stock Grid */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+          <div>
             <div className="flex items-center gap-2 mb-1">
               <Wallet className="w-3.5 h-3.5 text-green-600 dark:text-green-500" />
               <p className="text-xs text-muted-foreground">Cash</p>
@@ -92,7 +92,7 @@ const Profile = () => {
             </p>
           </div>
 
-          <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
+          <div>
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-3.5 h-3.5 text-blue-600 dark:text-blue-500" />
               <p className="text-xs text-muted-foreground">Stock</p>
@@ -105,7 +105,7 @@ const Profile = () => {
 
         {/* Member Since */}
         {data.createdAt && (
-          <div className="pt-2 border-t text-center">
+          <div className="pt-2 text-center">
             <p className="text-xs text-muted-foreground">
               Member since {formatDate(data.createdAt)}
             </p>

@@ -1,58 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Orderbook } from "../types";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader } from "./ui/card";
-
-const apiURL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const wsURL = process.env.NEXT_PUBLIC_WS_URL!;
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Orderbook } from "@/types";
 
 const Depth = () => {
-  const [orderBook, setOrderBook] = useState<Orderbook | null>(null);
-
-  useEffect(() => {
-    let ws: WebSocket;
-
-    const connectToWebSocket = () => {
-      ws = new WebSocket(wsURL);
-
-      ws.onopen = () => {
-        // console.log("Listening Orderbook");
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          if (message.type === "orderbook") {
-            setOrderBook(message.data);
-          }
-        } catch (error) {
-          // console.error("Error parsing message:", error);
-        }
-      };
-    };
-
-    const fetchOrderbook = async () => {
-      try {
-        const res = await fetch(apiURL + "/trade/depth");
-        const data = await res.json();
-        if (data.ok) {
-          setOrderBook(data.data);
-        }
-      } catch (error) {
-        // console.error("Failed to fetch order book", error);
-      }
-      connectToWebSocket();
-    };
-
-    fetchOrderbook();
-
-    return () => {
-      if (ws) {
-        ws.close();
-      }
-    };
-  }, []);
+  const { data: orderBook } = useQuery({
+    queryKey: ["depth"],
+    queryFn: async () => await api<Orderbook>("/trade/depth"),
+    refetchInterval: 2000,
+  });
 
   // Top 6 levels per side
   const topBids = useMemo(

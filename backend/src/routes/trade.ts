@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Hono } from "hono";
 import { redisClient, sendOrderbook } from "../index";
 import { db } from "../db";
 import { transactions, users } from "../schema";
@@ -7,7 +7,7 @@ import auth from "../middleware/jwt";
 import { chart } from "../memory";
 import { z } from "zod";
 
-const router = Router();
+const router = new Hono();
 
 const makeOrderSchema = z.object({
   side: z.enum(["bid", "ask"]),
@@ -22,15 +22,16 @@ const makeOrderSchema = z.object({
 });
 
 // Place a limit order
-router.post("/makeorder", auth, async (req: Request, res: Response) => {
+router.post("/makeorder", auth, async (c) => {
   const { side, price, quantity, market } = await makeOrderSchema.parseAsync(
-    req.body
+    await c.req.json()
   );
 
+  const jwt = (c as any).jwt;
   const userRow = await db
     .select()
     .from(users)
-    .where(eq(users.email, req.body.jwt.email));
+    .where(eq(users.email, jwt.email));
   const userData = userRow[0];
   const userId = userData.id;
 
@@ -39,31 +40,27 @@ router.post("/makeorder", auth, async (req: Request, res: Response) => {
   // check for enough balance
   if (side == "bid") {
     if (!userData || Number(userData.cash) < price * quantity) {
-      res.json({
+      return c.json({
         ok: false,
         msg: `Not enough cash.`,
       });
-      return;
     }
   } else {
     if (!userData || Number(userData.stock) < quantity) {
-      res.json({
+      return c.json({
         ok: false,
         msg: `Not enough quantity.`,
       });
-      return;
     }
   }
 
   // settle order and return remainQuantity which is not settled
   const remainingQty = await fillOrders(side, price, quantity, userId);
   if (remainingQty === 0) {
-    res.json({
+    return c.json({
       ok: true,
       msg: `All quantity of ${quantity} is filled.`,
     });
-    sendOrderbook();
-    return;
   }
 
   // Add remaining order to Redis orderbook
@@ -72,7 +69,7 @@ router.post("/makeorder", auth, async (req: Request, res: Response) => {
   await redisClient.rPush(key, JSON.stringify(order));
 
   sendOrderbook();
-  res.json({
+  return c.json({
     ok: true,
     msg: `${
       quantity - remainingQty
@@ -174,8 +171,8 @@ async function flipBalance(
   });
 }
 
-router.get("/chart", async (req: Request, res: Response) => {
-  res.json(
+router.get("/chart", async (c) => {
+  return c.json(
     chart.slice(-720).map((c) => ({
       time: Math.floor(c.timestamp.getTime() / 1000),
       open: c.open,
@@ -186,11 +183,11 @@ router.get("/chart", async (req: Request, res: Response) => {
   ); // last 12 hours
 });
 
-router.get("/depth", async (req: Request, res: Response) => {
+router.get("/depth", async (c) => {
   try {
     const asks = await redisClient.lRange("asks", 0, -1);
     const bids = await redisClient.lRange("bids", 0, -1);
-    res.json({
+    return c.json({
       ok: true,
       data: {
         asks: asks.map((a) => {
@@ -204,9 +201,7 @@ router.get("/depth", async (req: Request, res: Response) => {
       },
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ ok: false, error: "Failed to fetch orderbook from Redis" });
+    return c.json({ ok: false, error: "Failed to fetch orderbook from Redis" }, 500);
   }
 });
 
