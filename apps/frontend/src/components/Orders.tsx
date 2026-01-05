@@ -74,7 +74,7 @@ export default function Orders() {
     <Card className="shadow-md border-0 w-full">
       <CardHeader>
         <CardTitle className="text-lg font-semibold flex items-center justify-between">
-          My Orders
+          Active Orders
           <Button
             onClick={() => refetch()}
             variant="ghost"
