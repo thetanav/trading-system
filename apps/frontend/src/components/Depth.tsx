@@ -9,8 +9,11 @@ import { Orderbook } from "@/types";
 const Depth = () => {
   const { data: orderBook } = useQuery({
     queryKey: ["depth"],
-    queryFn: async () => await api<Orderbook>("/trade/depth"),
-    refetchInterval: 2000,
+    queryFn: async () => {
+      const res: any = await api("/trade/depth");
+      return res?.data! as Orderbook;
+    },
+    refetchInterval: 5000,
   });
 
   // Top 6 levels per side
@@ -46,50 +49,50 @@ const Depth = () => {
     [topAsks]
   );
 
-  const formatPrice = (n: number) =>
-    new Intl.NumberFormat("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(n);
-  const formatQty = (n: number) =>
-    new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
-
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+    <Card className="shadow-md border-0">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between text-xs">
           <div className="flex flex-col">
-            <span>Buy orders</span>
-            <span className="text-xl leading-none font-semibold text-green-400">
-              {buyPct.toFixed(2)}%
+            <span className="text-muted-foreground">Buy orders</span>
+            <span className="text-xl leading-none font-bold text-green-600 dark:text-green-500">
+              {buyPct.toFixed(1)}%
             </span>
           </div>
           <div className="flex flex-col text-right">
-            <span>Sell orders</span>
-            <span className="text-xl leading-none font-semibold text-red-400">
-              {sellPct.toFixed(2)}%
+            <span className="text-muted-foreground">Sell orders</span>
+            <span className="text-xl leading-none font-bold text-red-600 dark:text-red-500">
+              {sellPct.toFixed(1)}%
             </span>
           </div>
         </div>
-        <div className="mt-2 h-1 w-full rounded-full bg-neutral-800 overflow-hidden flex">
-          <div className="bg-green-500" style={{ width: `${buyPct}%` }}></div>
-          <div className="bg-red-500" style={{ width: `${sellPct}%` }}></div>
+        <div className="mt-2 h-2 w-full rounded-full overflow-hidden flex shadow-inner">
+          <div
+            className="bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500"
+            style={{ width: `${buyPct}%` }}></div>
+          <div
+            className="bg-gradient-to-r from-red-600 to-red-400 transition-all duration-500"
+            style={{ width: `${sellPct}%` }}></div>
         </div>
       </CardHeader>
-      <CardContent className="pt-1">
+      <CardContent className="pt-2">
         <div className="text-[12.5px] leading-tight">
           <table className="w-full border-separate">
             <thead>
-              <tr className="text-xs text-muted-foreground">
-                <th className="px-2 text-left font-medium w-[120px]">
+              <tr className="text-xs font-medium">
+                <th className="px-2 text-left text-muted-foreground w-[120px]">
                   Bid price
                 </th>
-                <th className="px-2 text-left font-medium w-[90px]">Qty</th>
+                <th className="px-2 text-left text-muted-foreground w-[90px]">
+                  Qty
+                </th>
                 <th className="px-2"></th>
-                <th className="px-2 text-left font-medium w-[120px]">
+                <th className="px-2 text-left text-muted-foreground w-[120px]">
                   Ask price
                 </th>
-                <th className="px-2 text-left font-medium w-[90px]">Qty</th>
+                <th className="px-2 text-left text-muted-foreground w-[90px]">
+                  Qty
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -99,39 +102,37 @@ const Depth = () => {
                 const bidWidth = bid ? (bid.quantity / maxBidQty) * 100 : 0;
                 const askWidth = ask ? (ask.quantity / maxAskQty) * 100 : 0;
                 return (
-                  <tr key={i} className="align-middle">
-                    <td className="px-2 py-1 text-white/90">
-                      {bid ? `${formatPrice(bid.price)}` : ""}
+                  <tr
+                    key={i}
+                    className="align-middle group hover:bg-muted/30 transition-colors">
+                    <td className="px-2 py-1.5 font-medium">
+                      {bid ? `$${bid.price}` : ""}
                     </td>
-                    <td className="px-2 py-1 relative text-emerald-300 font-semibold">
+                    <td className="px-2 py-1.5 relative text-green-600 dark:text-green-400 font-semibold">
                       {bid && (
                         <>
                           <div
-                            className="absolute inset-y-0 left-0 rounded bg-emerald-600/25"
+                            className="absolute inset-y-0 left-0 rounded bg-green-500/10 group-hover:bg-green-500/20 transition-colors"
                             style={{ width: `${bidWidth}%` }}
                           />
-                          <span className="relative z-10">
-                            {formatQty(bid.quantity)}
-                          </span>
+                          <span className="relative z-10">{bid.quantity}</span>
                         </>
                       )}
                     </td>
                     <td className="w-px">
-                      <div className="h-full w-px bg-neutral-700 mx-auto" />
+                      <div className="h-full w-px bg-border mx-auto" />
                     </td>
-                    <td className="px-2 py-1 text-white/90">
-                      {ask ? `${formatPrice(ask.price)}` : ""}
+                    <td className="px-2 py-1.5 font-medium">
+                      {ask ? `$${ask.price}` : ""}
                     </td>
-                    <td className="px-2 py-1 relative text-rose-300 font-semibold">
+                    <td className="px-2 py-1.5 relative text-red-600 dark:text-red-400 font-semibold">
                       {ask && (
                         <>
                           <div
-                            className="absolute inset-y-0 right-0 rounded bg-rose-500/25"
+                            className="absolute inset-y-0 right-0 rounded bg-red-500/10 group-hover:bg-red-500/20 transition-colors"
                             style={{ width: `${askWidth}%` }}
                           />
-                          <span className="relative z-10">
-                            {formatQty(ask.quantity)}
-                          </span>
+                          <span className="relative z-10">{ask.quantity}</span>
                         </>
                       )}
                     </td>
@@ -140,15 +141,15 @@ const Depth = () => {
               })}
             </tbody>
             <tfoot>
-              <tr className="text-xs text-muted-foreground">
-                <td className="px-2 pt-2">Bid total</td>
-                <td className="px-2 pt-2 font-medium text-white">
-                  {formatQty(bidTotal)}
+              <tr className="text-xs font-medium">
+                <td className="px-2 pt-2 text-muted-foreground">Bid total</td>
+                <td className="px-2 pt-2 text-green-600 dark:text-green-500 font-bold">
+                  {bidTotal}
                 </td>
                 <td></td>
-                <td className="px-2 pt-2">Ask total</td>
-                <td className="px-2 pt-2 font-medium text-white">
-                  {formatQty(askTotal)}
+                <td className="px-2 pt-2 text-muted-foreground">Ask total</td>
+                <td className="px-2 pt-2 text-red-600 dark:text-red-500 font-bold">
+                  {askTotal}
                 </td>
               </tr>
             </tfoot>

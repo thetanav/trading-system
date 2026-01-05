@@ -15,7 +15,7 @@ const makeOrderSchema = z.object({
     .number()
     .refine(
       (val) => Number.isFinite(val) && Math.round(val * 100) === val * 100,
-      { message: "Must have at most 2 decimal places" }
+      { message: "Must have at most 2 decimal places" },
     ),
   market: z.boolean().default(false),
   quantity: z.int().positive(),
@@ -24,7 +24,7 @@ const makeOrderSchema = z.object({
 // Place a limit order
 router.post("/makeorder", auth, async (c) => {
   const { side, price, quantity, market } = await makeOrderSchema.parseAsync(
-    await c.req.json()
+    await c.req.json(),
   );
 
   const jwt = (c as any).jwt;
@@ -35,27 +35,61 @@ router.post("/makeorder", auth, async (c) => {
   const userData = userRow[0];
   const userId = userData.id;
 
-  // if market then set price to market price
-
-  // check for enough balance
-  if (side == "bid") {
-    if (!userData || Number(userData.cash) < price * quantity) {
-      return c.json({
-        ok: false,
-        msg: `Not enough cash.`,
-      });
+  if (market) {
+    if (side === "bid") {
+      const asks = (await redisClient.lRange("asks", 0, -1)).map((a: any) =>
+        JSON.parse(a),
+      );
+      if (asks.length === 0) {
+        return c.json({
+          ok: false,
+          msg: `No asks available for market order.`,
+        });
+      }
+      const minAskPrice = Math.min(...asks.map((a) => a.price));
+      if (!userData || Number(userData.cash) < minAskPrice * quantity) {
+        return c.json({
+          ok: false,
+          msg: `Not enough cash for market order.`,
+        });
+      }
+    } else {
+      const bids = (await redisClient.lRange("bids", 0, -1)).map((b: any) =>
+        JSON.parse(b),
+      );
+      if (bids.length === 0) {
+        return c.json({
+          ok: false,
+          msg: `No bids available for market order.`,
+        });
+      }
+      const maxBidPrice = Math.max(...bids.map((b) => b.price));
+      if (!userData || Number(userData.stock) < quantity) {
+        return c.json({
+          ok: false,
+          msg: `Not enough quantity for market order.`,
+        });
+      }
     }
   } else {
-    if (!userData || Number(userData.stock) < quantity) {
-      return c.json({
-        ok: false,
-        msg: `Not enough quantity.`,
-      });
+    if (side == "bid") {
+      if (!userData || Number(userData.cash) < price * quantity) {
+        return c.json({
+          ok: false,
+          msg: `Not enough cash.`,
+        });
+      }
+    } else {
+      if (!userData || Number(userData.stock) < quantity) {
+        return c.json({
+          ok: false,
+          msg: `Not enough quantity.`,
+        });
+      }
     }
   }
 
-  // settle order and return remainQuantity which is not settled
-  const remainingQty = await fillOrders(side, price, quantity, userId);
+  const remainingQty = await fillOrders(side, price, quantity, userId, market);
   if (remainingQty === 0) {
     return c.json({
       ok: true,
@@ -63,8 +97,15 @@ router.post("/makeorder", auth, async (c) => {
     });
   }
 
-  // Add remaining order to Redis orderbook
-  const order = { userId, price, quantity: remainingQty };
+  if (market) {
+    return c.json({
+      ok: false,
+      msg: `Market order partially filled. ${quantity - remainingQty} filled.`,
+    });
+  }
+
+  const orderId = `${Date.now()}-${userId}-${Math.random().toString(36).substr(2, 9)}`;
+  const order = { orderId, userId, price, quantity: remainingQty };
   const key = side === "bid" ? "bids" : "asks";
   await redisClient.rPush(key, JSON.stringify(order));
 
@@ -81,62 +122,66 @@ async function fillOrders(
   side: string,
   price: number,
   quantity: number,
-  userId: number
+  userId: number,
+  market: boolean = false,
 ): Promise<number> {
   let remainingQuantity = quantity;
   if (side === "bid") {
-    // Match against asks
     let asks = (await redisClient.lRange("asks", 0, -1)).map((a: any) =>
-      JSON.parse(a)
+      JSON.parse(a),
     );
+    const minAskPrice =
+      asks.length > 0 ? Math.min(...asks.map((a) => a.price)) : 0;
+
     for (let i = asks.length - 1; i >= 0; i--) {
       if (asks[i].userId === userId) continue;
-      if (asks[i].price <= price) {
+      const shouldMatch = market ? true : asks[i].price <= price;
+      if (shouldMatch) {
         if (asks[i].quantity > remainingQuantity) {
           asks[i].quantity -= remainingQuantity;
           flipBalance(asks[i].userId, userId, remainingQuantity, asks[i].price);
-          // Update ask in Redis
           await redisClient.lSet("asks", i, JSON.stringify(asks[i]));
           return 0;
         } else {
           remainingQuantity -= asks[i].quantity;
           flipBalance(asks[i].userId, userId, asks[i].quantity, asks[i].price);
-          // Remove ask from Redis
           await redisClient.lRem("asks", 1, JSON.stringify(asks[i]));
         }
       }
     }
+    return remainingQuantity;
   } else {
-    // Match against bids
     let bids = (await redisClient.lRange("bids", 0, -1)).map((b: any) =>
-      JSON.parse(b)
+      JSON.parse(b),
     );
+    const maxBidPrice =
+      bids.length > 0 ? Math.max(...bids.map((b) => b.price)) : 0;
+
     for (let i = bids.length - 1; i >= 0; i--) {
       if (bids[i].userId === userId) continue;
-      if (bids[i].price >= price) {
+      const shouldMatch = market ? true : bids[i].price >= price;
+      if (shouldMatch) {
         if (bids[i].quantity > remainingQuantity) {
           bids[i].quantity -= remainingQuantity;
           flipBalance(userId, bids[i].userId, remainingQuantity, bids[i].price);
-          // Update bid in Redis
           await redisClient.lSet("bids", i, JSON.stringify(bids[i]));
           return 0;
         } else {
           remainingQuantity -= bids[i].quantity;
           flipBalance(userId, bids[i].userId, bids[i].quantity, bids[i].price);
-          // Remove bid from Redis
           await redisClient.lRem("bids", 1, JSON.stringify(bids[i]));
         }
       }
     }
+    return remainingQuantity;
   }
-  return remainingQuantity;
 }
 
 async function flipBalance(
   userId1: number,
   userId2: number,
   quantity: number,
-  price: number
+  price: number,
 ) {
   // Atomically update user1 (seller): decrease stock, increase cash
   await db
@@ -179,7 +224,7 @@ router.get("/chart", async (c) => {
       high: c.high,
       low: c.low,
       close: c.close,
-    }))
+    })),
   ); // last 12 hours
 });
 
@@ -201,7 +246,80 @@ router.get("/depth", async (c) => {
       },
     });
   } catch (err) {
-    return c.json({ ok: false, error: "Failed to fetch orderbook from Redis" }, 500);
+    return c.json(
+      { ok: false, error: "Failed to fetch orderbook from Redis" },
+      500,
+    );
+  }
+});
+
+router.get("/myorders", auth, async (c) => {
+  const jwt = (c as any).jwt;
+  const userRow = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, jwt.email));
+  const userId = userRow[0].id;
+
+  try {
+    const asks = (await redisClient.lRange("asks", 0, -1))
+      .map((a) => JSON.parse(a))
+      .filter((a) => a.userId === userId);
+    const bids = (await redisClient.lRange("bids", 0, -1))
+      .map((b) => JSON.parse(b))
+      .filter((b) => b.userId === userId);
+
+    return c.json({
+      ok: true,
+      data: {
+        asks: asks.map((a) => ({
+          orderId: a.orderId,
+          price: a.price,
+          quantity: a.quantity,
+        })),
+        bids: bids.map((b) => ({
+          orderId: b.orderId,
+          price: b.price,
+          quantity: b.quantity,
+        })),
+      },
+    });
+  } catch (err) {
+    return c.json({ ok: false, error: "Failed to fetch orders" }, 500);
+  }
+});
+
+router.post("/cancelorder", auth, async (c) => {
+  const { orderId, side } = await c.req.json();
+  const jwt = (c as any).jwt;
+  const userRow = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, jwt.email));
+  const userId = userRow[0].id;
+
+  try {
+    const key = side === "bid" ? "bids" : "asks";
+    const orders = await redisClient.lRange(key, 0, -1);
+
+    for (const order of orders) {
+      const parsed = JSON.parse(order);
+      if (parsed.orderId === orderId && parsed.userId === userId) {
+        await redisClient.lRem(key, 1, order);
+        sendOrderbook();
+        return c.json({
+          ok: true,
+          msg: "Order cancelled successfully.",
+        });
+      }
+    }
+
+    return c.json({
+      ok: false,
+      msg: "Order not found or you don't have permission.",
+    });
+  } catch (err) {
+    return c.json({ ok: false, error: "Failed to cancel order" }, 500);
   }
 });
 

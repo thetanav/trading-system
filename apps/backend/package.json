@@ -11,8 +11,8 @@
     "start": "bun dist/index.js",
     "start:pm2": "pm2 start ecosystem.config.js",
     "dev": "bun --watch src/index.ts",
-    "db:push": "bunx drizzle-kit push",
-    "db:studio": "bunx drizzle-kit studio"
+    "db:push": "bunx --bun drizzle-kit push",
+    "db:studio": "bunx --bun drizzle-kit studio"
   },
   "keywords": [],
   "author": "tanav",

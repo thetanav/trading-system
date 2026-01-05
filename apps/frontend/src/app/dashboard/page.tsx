@@ -2,6 +2,7 @@ import Depth from "../../components/Depth";
 import MakeOrder from "../../components/MakeOrder";
 import Profile from "../../components/Profile";
 import Transactions from "../../components/Transactions";
+import Orders from "../../components/Orders";
 import Chart from "@/components/Chart";
 
 export default function Dashboard() {
@@ -10,7 +11,10 @@ export default function Dashboard() {
       <div className="flex gap-4">
         <div className="flex-2 flex flex-col gap-4">
           <Chart />
-          <Transactions />
+          <div className="flex gap-4 w-full">
+            <Transactions />
+            <Orders />
+          </div>
         </div>
         <div className="flex-1 flex flex-col gap-4 w-96">
           <Profile />
